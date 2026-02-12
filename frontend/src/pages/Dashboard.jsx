@@ -10,7 +10,7 @@ function Dashboard() {
             </h2>
             <p className="lead">
               Use the navigation on the left to manage your catalog. This dashboard
-              is optimized for fast updates and clear visibility into stock.
+              is optimized for fast updates and clear visibility into stock.                       
             </p>
           </div>
         </div>
