@@ -11,24 +11,33 @@ const emptyForm = {
   image_url: '',
 }
 
+const emptyFilters = {
+  search: '',
+  status: '',
+  category_id: '',
+  price_min: '',
+  price_max: '',
+}
+
 const statusOptions = ['active', 'inactive', 'archived']
 
 function Products() {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [form, setForm] = useState(emptyForm)
+  const [filters, setFilters] = useState(emptyFilters)
   const [editingId, setEditingId] = useState(null)
   const [previewUrl, setPreviewUrl] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const loadProducts = async () => {
+  const loadProducts = async (params = filters) => {
     setLoading(true)
     setError('')
     try {
       const [productResponse, categoryResponse] = await Promise.all([
-        api.getProducts(),
+        api.getProducts(params),
         api.getCategories(),
       ])
       setProducts(productResponse.data || productResponse)
@@ -46,6 +55,10 @@ function Products() {
 
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleFilterChange = (field, value) => {
+    setFilters((prev) => ({ ...prev, [field]: value }))
   }
 
   const resetForm = () => {
@@ -115,6 +128,16 @@ function Products() {
     } catch (err) {
       setError(err.message)
     }
+  }
+
+  const handleFilterSubmit = async (event) => {
+    event.preventDefault()
+    await loadProducts(filters)
+  }
+
+  const handleFilterReset = async () => {
+    setFilters(emptyFilters)
+    await loadProducts(emptyFilters)
   }
 
   return (
@@ -222,6 +245,74 @@ function Products() {
           <h3 className="section-title">Current products</h3>
           <p className="meta">{products.length} total</p>
         </div>
+        <form className="filter-grid" onSubmit={handleFilterSubmit}>
+          <label className="field">
+            <span>Search</span>
+            <input
+              value={filters.search}
+              onChange={(event) => handleFilterChange('search', event.target.value)}
+              placeholder="Name, SKU, or description"
+            />
+          </label>
+          <label className="field">
+            <span>Status</span>
+            <select
+              value={filters.status}
+              onChange={(event) => handleFilterChange('status', event.target.value)}
+            >
+              <option value="">All statuses</option>
+              {statusOptions.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>Category</span>
+            <select
+              value={filters.category_id}
+              onChange={(event) => handleFilterChange('category_id', event.target.value)}
+            >
+              <option value="">All categories</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>Price Min</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={filters.price_min}
+              onChange={(event) => handleFilterChange('price_min', event.target.value)}
+              placeholder="0"
+            />
+          </label>
+          <label className="field">
+            <span>Price Max</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={filters.price_max}
+              onChange={(event) => handleFilterChange('price_max', event.target.value)}
+              placeholder="500"
+            />
+          </label>
+          <div className="actions">
+            <button type="submit" className="button">
+              Apply Filters
+            </button>
+            <button type="button" onClick={handleFilterReset} className="button ghost">
+              Clear
+            </button>
+          </div>
+        </form>
         {loading ? (
           <p className="helper">Loading products...</p>
         ) : products.length === 0 ? (

@@ -8,7 +8,8 @@ const emptyForm = {
   is_active: true,
 }
 
-function Categories() {
+function Categories({ currentUser }) {
+  const canManage = currentUser?.role === 'admin'
   const [categories, setCategories] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
@@ -96,54 +97,58 @@ function Categories() {
             <p className="eyebrow">Categories</p>
             <h2 className="section-title">Manage catalog categories</h2>
           </div>
-          {editingId && (
+          {editingId && canManage && (
             <button type="button" onClick={resetForm} className="button ghost">
               Cancel Edit
             </button>
           )}
         </div>
-        <form onSubmit={handleSubmit} className="form-grid">
-          <label className="field">
-            <span>Name</span>
-            <input
-              value={form.name}
-              onChange={(event) => handleChange('name', event.target.value)}
-              placeholder="Electronics"
-              required
-            />
-          </label>
-          <label className="field">
-            <span>Slug</span>
-            <input
-              value={form.slug}
-              onChange={(event) => handleChange('slug', event.target.value)}
-              placeholder="electronics"
-              required
-            />
-          </label>
-          <label className="field full">
-            <span>Description</span>
-            <textarea
-              value={form.description}
-              onChange={(event) => handleChange('description', event.target.value)}
-              placeholder="Short category description"
-            />
-          </label>
-          <label className="checkbox">
-            <input
-              type="checkbox"
-              checked={form.is_active}
-              onChange={(event) => handleChange('is_active', event.target.checked)}
-            />
-            Active category
-          </label>
-          <div className="actions full">
-            <button type="submit" disabled={saving} className="button primary">
-              {saving ? 'Saving...' : editingId ? 'Update Category' : 'Add Category'}
-            </button>
-          </div>
-          {error && <p className="form-error full">{error}</p>}
-        </form>
+        {canManage ? (
+          <form onSubmit={handleSubmit} className="form-grid">
+            <label className="field">
+              <span>Name</span>
+              <input
+                value={form.name}
+                onChange={(event) => handleChange('name', event.target.value)}
+                placeholder="Electronics"
+                required
+              />
+            </label>
+            <label className="field">
+              <span>Slug</span>
+              <input
+                value={form.slug}
+                onChange={(event) => handleChange('slug', event.target.value)}
+                placeholder="electronics"
+                required
+              />
+            </label>
+            <label className="field full">
+              <span>Description</span>
+              <textarea
+                value={form.description}
+                onChange={(event) => handleChange('description', event.target.value)}
+                placeholder="Short category description"
+              />
+            </label>
+            <label className="checkbox">
+              <input
+                type="checkbox"
+                checked={form.is_active}
+                onChange={(event) => handleChange('is_active', event.target.checked)}
+              />
+              Active category
+            </label>
+            <div className="actions full">
+              <button type="submit" disabled={saving} className="button primary">
+                {saving ? 'Saving...' : editingId ? 'Update Category' : 'Add Category'}
+              </button>
+            </div>
+            {error && <p className="form-error full">{error}</p>}
+          </form>
+        ) : (
+          <p className="helper">Only admins can create or edit categories.</p>
+        )}
       </section>
 
       <section className="section">
@@ -175,22 +180,26 @@ function Categories() {
                       {category.is_active ? 'Active' : 'Inactive'}
                     </td>
                     <td>
-                      <div className="table-actions">
-                        <button
-                          type="button"
-                          onClick={() => handleEdit(category)}
-                          className="button ghost"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(category.id)}
-                          className="button danger"
-                        >
-                          Delete
-                        </button>
-                      </div>
+                      {canManage ? (
+                        <div className="table-actions">
+                          <button
+                            type="button"
+                            onClick={() => handleEdit(category)}
+                            className="button ghost"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(category.id)}
+                            className="button danger"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="helper">Read only</span>
+                      )}
                     </td>
                   </tr>
                 ))}
